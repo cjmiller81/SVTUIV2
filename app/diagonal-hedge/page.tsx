@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, ArrowDownUp, Play, Pencil, Pause, Save } from "lucide-react";
+import { Plus, Trash2, ArrowDownUp, Play, Pencil, Pause, Save, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -27,15 +27,26 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
+interface Position {
+  symbol: string;
+  qty: number;
+  dte: number;
+  avgTradePrice: number;
+  status: string;
+}
+
 interface Strategy {
   id: string;
   brokerage: string;
+  username: string;
   accountNumber: string;
   tradeSymbol: string;
   allocationValue: string;
   preset: string;
   status: 'Active' | 'Inactive';
   forceRebalance: boolean;
+  positions: Position[];
+  isExpanded: boolean;
 }
 
 const presetOptions = [
@@ -78,10 +89,8 @@ const presetOptions = [
 ];
 
 const formatCurrency = (value: string): string => {
-  // Remove any non-digit characters except decimal point
   const numericValue = value.replace(/[^\d.]/g, '');
   
-  // Convert to number and format with commas
   const formatted = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -115,7 +124,6 @@ export default function DiagonalHedgePage() {
 
   const handleInputChange = (field: string, value: string) => {
     if (field === 'allocationValue') {
-      // Format the value with commas
       const formattedValue = formatCurrency(value);
       setFormData(prev => ({
         ...prev,
@@ -148,12 +156,15 @@ export default function DiagonalHedgePage() {
     const newStrategy: Strategy = {
       id: crypto.randomUUID(),
       brokerage: formData.brokerage,
+      username: "trader1",
       accountNumber: formData.accountNumber,
       tradeSymbol: formData.tradeSymbol,
       allocationValue: formData.allocationValue,
       preset: formData.preset,
       status: 'Inactive',
-      forceRebalance: false
+      forceRebalance: false,
+      positions: [],
+      isExpanded: false
     };
 
     setStrategies(prev => [...prev, newStrategy]);
@@ -209,6 +220,18 @@ export default function DiagonalHedgePage() {
     });
   };
 
+  const toggleAccordion = (id: string) => {
+    setStrategies(prev => prev.map(strategy => {
+      if (strategy.id === id) {
+        return {
+          ...strategy,
+          isExpanded: !strategy.isExpanded
+        };
+      }
+      return strategy;
+    }));
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="border-b border-[#1F2937] bg-[#0B0F17] p-8">
@@ -238,6 +261,7 @@ export default function DiagonalHedgePage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-[#1F2937] hover:bg-transparent">
+                    <TableHead className="w-8"></TableHead>
                     <TableHead className="text-gray-400 font-medium">Brokerage</TableHead>
                     <TableHead className="text-gray-400 font-medium">Account #</TableHead>
                     <TableHead className="text-gray-400 font-medium">Trade Symbol</TableHead>
@@ -250,112 +274,161 @@ export default function DiagonalHedgePage() {
                 </TableHeader>
                 <TableBody>
                   {strategies.map((strategy) => (
-                    <TableRow key={strategy.id} className="border-b border-[#1F2937] hover:bg-[#1F2937]/50">
-                      <TableCell className="font-medium text-white capitalize">{strategy.brokerage}</TableCell>
-                      <TableCell className="text-white">{strategy.accountNumber}</TableCell>
-                      <TableCell className="text-white">{strategy.tradeSymbol}</TableCell>
-                      <TableCell className="text-white">
-                        {editingId === strategy.id ? (
-                          <Input 
-                            className="bg-[#1F2937] border-[#374151] text-white focus:ring-offset-[#0F1724] w-32"
-                            value={editFormData.allocationValue}
-                            onChange={(e) => handleEditInputChange('allocationValue', e.target.value)}
-                          />
-                        ) : (
-                          strategy.allocationValue
-                        )}
-                      </TableCell>
-                      <TableCell className="text-white">
-                        {editingId === strategy.id ? (
-                          <Select
-                            value={editFormData.preset}
-                            onValueChange={(value) => handleEditInputChange('preset', value)}
-                          >
-                            <SelectTrigger className="bg-[#1F2937] border-[#374151] focus:ring-offset-[#0F1724] w-64">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#1F2937] border-[#374151]">
-                              {presetOptions.map((preset) => (
-                                <SelectItem key={preset.value} value={preset.value}>
-                                  {preset.displayName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          getPresetDisplayName(strategy.preset)
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          strategy.status === 'Active' 
-                            ? 'bg-green-900/50 text-green-400' 
-                            : 'bg-gray-700/50 text-gray-400'
-                        }`}>
-                          {strategy.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {strategy.status === 'Active' && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="bg-[#1F2937] hover:bg-[#374151] text-cyan-400 text-xs font-medium border border-[#374151]"
-                          >
-                            Force Rebalance
-                          </Button>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
+                    <React.Fragment key={strategy.id}>
+                      <TableRow className="border-b border-[#1F2937] hover:bg-[#1F2937]/50">
+                        <TableCell className="w-8">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`hover:bg-[#1F2937] ${
-                              strategy.status === 'Active' 
-                                ? 'text-green-400 hover:text-red-400' 
-                                : 'hover:text-green-400'
-                            }`}
-                            onClick={() => toggleStrategyStatus(strategy.id)}
+                            className="h-4 w-4 p-0 hover:bg-transparent"
+                            onClick={() => toggleAccordion(strategy.id)}
                           >
-                            {strategy.status === 'Active' ? (
-                              <Pause className="h-4 w-4" />
+                            {strategy.isExpanded ? (
+                              <ChevronUp className="h-4 w-4 text-gray-400" />
                             ) : (
-                              <Play className="h-4 w-4" />
+                              <ChevronDown className="h-4 w-4 text-gray-400" />
                             )}
                           </Button>
+                        </TableCell>
+                        <TableCell className="font-medium text-white capitalize">{strategy.brokerage}</TableCell>
+                        <TableCell className="text-white">{strategy.accountNumber}</TableCell>
+                        <TableCell className="text-white">{strategy.tradeSymbol}</TableCell>
+                        <TableCell className="text-white">
                           {editingId === strategy.id ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="hover:bg-[#1F2937] text-green-400"
-                              onClick={() => handleSaveEdit(strategy.id)}
-                            >
-                              <Save className="h-4 w-4" />
-                            </Button>
+                            <Input 
+                              className="bg-[#1F2937] border-[#374151] text-white focus:ring-offset-[#0F1724] w-32"
+                              value={editFormData.allocationValue}
+                              onChange={(e) => handleEditInputChange('allocationValue', e.target.value)}
+                            />
                           ) : (
+                            strategy.allocationValue
+                          )}
+                        </TableCell>
+                        <TableCell className="text-white">
+                          {editingId === strategy.id ? (
+                            <Select
+                              value={editFormData.preset}
+                              onValueChange={(value) => handleEditInputChange('preset', value)}
+                            >
+                              <SelectTrigger className="bg-[#1F2937] border-[#374151] focus:ring-offset-[#0F1724] w-64">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-[#1F2937] border-[#374151]">
+                                {presetOptions.map((preset) => (
+                                  <SelectItem key={preset.value} value={preset.value}>
+                                    {preset.displayName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            getPresetDisplayName(strategy.preset)
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            strategy.status === 'Active' 
+                              ? 'bg-green-900/50 text-green-400' 
+                              : 'bg-gray-700/50 text-gray-400'
+                          }`}>
+                            {strategy.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {strategy.status === 'Active' && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="bg-[#1F2937] hover:bg-[#374151] text-cyan-400 text-xs font-medium border border-[#374151]"
+                            >
+                              Force Rebalance
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="hover:bg-[#1F2937] hover:text-blue-400"
-                              onClick={() => handleEditClick(strategy)}
+                              className={`hover:bg-[#1F2937] ${
+                                strategy.status === 'Active' 
+                                  ? 'text-green-400 hover:text-red-400' 
+                                  : 'hover:text-green-400'
+                              }`}
+                              onClick={() => toggleStrategyStatus(strategy.id)}
                             >
-                              <Pencil className="h-4 w-4" />
+                              {strategy.status === 'Active' ? (
+                                <Pause className="h-4 w-4" />
+                              ) : (
+                                <Play className="h-4 w-4" />
+                              )}
                             </Button>
-                          )}
-                          {strategy.status === 'Inactive' && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="hover:bg-[#1F2937] hover:text-red-400"
-                              onClick={() => handleDeleteStrategy(strategy.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                            {editingId === strategy.id ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="hover:bg-[#1F2937] text-green-400"
+                                onClick={() => handleSaveEdit(strategy.id)}
+                              >
+                                <Save className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="hover:bg-[#1F2937] hover:text-blue-400"
+                                onClick={() => handleEditClick(strategy)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {strategy.status === 'Inactive' && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="hover:bg-[#1F2937] hover:text-red-400"
+                                onClick={() => handleDeleteStrategy(strategy.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {strategy.isExpanded && (
+                        <TableRow className="bg-[#0B0F17]/50 border-b border-[#1F2937]">
+                          <TableCell colSpan={9} className="p-0">
+                            <div className="p-4">
+                              <h3 className="text-sm font-medium text-gray-400 mb-2">Current Position</h3>
+                              <div className="rounded-md border border-[#1F2937] bg-[#0B0F17]">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="border-b border-[#1F2937] hover:bg-transparent">
+                                      <TableHead className="text-gray-400 font-medium">Symbol</TableHead>
+                                      <TableHead className="text-gray-400 font-medium">Qty</TableHead>
+                                      <TableHead className="text-gray-400 font-medium">DTE</TableHead>
+                                      <TableHead className="text-gray-400 font-medium">Avg Trade Price</TableHead>
+                                      <TableHead className="text-gray-400 font-medium">Status</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {strategy.positions.map((position, index) => (
+                                      <TableRow key={index} className="border-b border-[#1F2937] hover:bg-[#1F2937]/50">
+                                        <TableCell className="text-white">{position.symbol}</TableCell>
+                                        <TableCell className="text-white">{position.qty}</TableCell>
+                                        <TableCell className="text-white">{position.dte}</TableCell>
+                                        <TableCell className="text-white">${position.avgTradePrice.toFixed(2)}</TableCell>
+                                        <TableCell className="text-white">{position.status}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>
