@@ -425,9 +425,9 @@ export default function DiagonalHedgePage() {
                         </TableCell>
                       </TableRow>
                       {strategy.isExpanded && (
-                        <TableRow className="bg-[#0B0F17]/50 border-b border-[#1F2937]">
+                        <TableRow className="border-b border-[#1F2937]">
                           <TableCell colSpan={9} className="p-0">
-                            <div className="p-4">
+                            <div className="p-4 bg-[#0F1724]">
                               <div className="flex justify-between items-center mb-2">
                                 <h3 className="text-sm font-medium text-gray-400">Current Position</h3>
                                 <div className="flex items-center gap-4">
@@ -449,7 +449,7 @@ export default function DiagonalHedgePage() {
                               <div className="rounded-md border border-[#1F2937] bg-[#0B0F17]">
                                 <Table>
                                   <TableHeader>
-                                    <TableRow className="border-b border-[#1F2937] hover:bg-transparent">
+                                    <TableRow className="border-b-2 border-[#1F2937] hover:bg-transparent">
                                       <TableHead className="text-gray-400 font-medium">Symbol</TableHead>
                                       <TableHead className="text-gray-400 font-medium">Qty</TableHead>
                                       <TableHead className="text-gray-400 font-medium">DTE</TableHead>
