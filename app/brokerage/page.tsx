@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Briefcase } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,9 +35,17 @@ interface Connection {
   status: 'Connected' | 'Disconnected';
 }
 
+const defaultConnection: Connection = {
+  id: "default",
+  firm: "tastytrade",
+  username: "trader1",
+  accountNumber: "12345",
+  status: "Connected"
+};
+
 export default function BrokeragePage() {
   const [open, setOpen] = useState(false);
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([defaultConnection]);
   const [formData, setFormData] = useState({
     firm: '',
     username: '',
@@ -72,6 +80,7 @@ export default function BrokeragePage() {
   };
 
   const handleDeleteConnection = (id: string) => {
+    if (id === "default") return; // Prevent deletion of default connection
     setConnections(prev => prev.filter(conn => conn.id !== id));
   };
 
@@ -85,7 +94,10 @@ export default function BrokeragePage() {
       <div className="flex-1 bg-[#090D14] p-8">
         <Card className="bg-[#0B0F17] border-[#1F2937] text-white">
           <CardHeader className="flex flex-row items-center justify-between">
-            <h2 className="text-xl font-semibold">Brokerage Connections</h2>
+            <div className="flex flex-row items-center gap-2">
+              <Briefcase className="h-5 w-5 text-sky-500" />
+              <h2 className="text-xl font-semibold">Brokerage Connections</h2>
+            </div>
             <Button 
               variant="secondary" 
               size="sm" 
@@ -111,7 +123,7 @@ export default function BrokeragePage() {
                 <TableBody>
                   {connections.map((connection) => (
                     <TableRow key={connection.id} className="border-b border-[#1F2937] hover:bg-[#1F2937]/50">
-                      <TableCell className="font-medium text-white">{connection.firm}</TableCell>
+                      <TableCell className="font-medium text-white capitalize">{connection.firm}</TableCell>
                       <TableCell className="text-white">{connection.username}</TableCell>
                       <TableCell className="text-white">{connection.accountNumber}</TableCell>
                       <TableCell>
@@ -129,6 +141,7 @@ export default function BrokeragePage() {
                           size="icon"
                           className="hover:bg-[#1F2937] hover:text-red-400"
                           onClick={() => handleDeleteConnection(connection.id)}
+                          disabled={connection.id === "default"}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
