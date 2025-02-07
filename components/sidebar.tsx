@@ -10,7 +10,24 @@ import {
   ArrowDownUp
 } from 'lucide-react';
 
-const routes = [
+// Define the type for Lucide icons
+type IconType = typeof Briefcase | typeof TrendingUp | typeof Calendar | typeof ArrowDownUp;
+
+type NavRoute = {
+  label: string;
+  icon: IconType;
+  href: string;
+  color: string;
+};
+
+type SeparatorRoute = {
+  label: string;
+  type: 'separator';
+};
+
+type Route = NavRoute | SeparatorRoute;
+
+const routes: Route[] = [
   {
     label: 'Brokerage',
     icon: Briefcase,
@@ -48,10 +65,10 @@ export function Sidebar() {
     <div className="space-y-4 py-4 flex flex-col h-full bg-[#0B0F17] border-r border-[#1F2937] w-64">
       <div className="space-y-1">
         {routes.map((route, index) => {
-          if (route.type === 'separator') {
+          if ('type' in route && route.type === 'separator') {
             return (
               <h3 
-                key={index} 
+                key={`separator-${index}`}
                 className="px-7 py-2 text-xs font-semibold text-gray-400"
               >
                 {route.label}
@@ -59,18 +76,19 @@ export function Sidebar() {
             );
           }
 
-          const Icon = route.icon;
+          // TypeScript now knows this must be a NavRoute
+          const navRoute = route as NavRoute;
           return (
             <Link
-              key={route.href}
-              href={route.href}
+              key={navRoute.href}
+              href={navRoute.href}
               className={cn(
                 "flex items-center gap-x-2 px-7 py-2 text-sm font-medium transition-colors hover:text-white hover:bg-[#1F2937]/50",
-                pathname === route.href ? "text-white bg-[#1F2937]" : "text-gray-400"
+                pathname === navRoute.href ? "text-white bg-[#1F2937]" : "text-gray-400"
               )}
             >
-              <Icon className={cn("h-5 w-5", route.color)} />
-              {route.label}
+              <navRoute.icon className={cn("h-5 w-5", navRoute.color)} />
+              {navRoute.label}
             </Link>
           );
         })}
