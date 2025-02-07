@@ -38,6 +38,45 @@ interface Strategy {
   forceRebalance: boolean;
 }
 
+const presetOptions = [
+  {
+    displayName: "Small allocation ($40k-$75k) - Cautious",
+    value: "smallAllocateCautious"
+  },
+  {
+    displayName: "Small allocation ($40k-$75k) - Neutral",
+    value: "smallAllocateNeutral"
+  },
+  {
+    displayName: "Small allocation ($40k-$75k) - Bullish",
+    value: "smallAllocateBullish"
+  },
+  {
+    displayName: "Medium allocation ($75k-$100k) - Cautious",
+    value: "mediumAllocateCautious"
+  },
+  {
+    displayName: "Medium allocation ($75k-$100k) - Neutral",
+    value: "mediumAllocateNeutral"
+  },
+  {
+    displayName: "Medium allocation ($75k-$100k) - Bullish",
+    value: "mediumAllocateBullish"
+  },
+  {
+    displayName: "Large allocation ($100k+) - Cautious",
+    value: "largeAllocateCautious"
+  },
+  {
+    displayName: "Large allocation ($100k+) - Neutral",
+    value: "largeAllocateNeutral"
+  },
+  {
+    displayName: "Large allocation ($100k+) - Bullish",
+    value: "largeAllocateBullish"
+  }
+];
+
 const formatCurrency = (value: string): string => {
   // Remove any non-digit characters except decimal point
   const numericValue = value.replace(/[^\d.]/g, '');
@@ -51,6 +90,11 @@ const formatCurrency = (value: string): string => {
   }).format(Number(numericValue) || 0);
 
   return formatted;
+};
+
+const getPresetDisplayName = (value: string): string => {
+  const preset = presetOptions.find(option => option.value === value);
+  return preset ? preset.displayName : value;
 };
 
 export default function DiagonalHedgePage() {
@@ -149,7 +193,7 @@ export default function DiagonalHedgePage() {
                       <TableCell className="text-white">{strategy.accountNumber}</TableCell>
                       <TableCell className="text-white">{strategy.tradeSymbol}</TableCell>
                       <TableCell className="text-white">{strategy.allocationValue}</TableCell>
-                      <TableCell className="text-white">{strategy.preset}</TableCell>
+                      <TableCell className="text-white">{getPresetDisplayName(strategy.preset)}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           strategy.status === 'Active' 
@@ -232,7 +276,11 @@ export default function DiagonalHedgePage() {
                     <SelectValue placeholder="Select a preset" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1F2937] border-[#374151]">
-                    {/* Preset items will be added later */}
+                    {presetOptions.map((preset) => (
+                      <SelectItem key={preset.value} value={preset.value}>
+                        {preset.displayName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
