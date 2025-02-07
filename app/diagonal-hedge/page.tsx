@@ -49,6 +49,35 @@ interface Strategy {
   isExpanded: boolean;
 }
 
+const defaultStrategy: Strategy = {
+  id: "default",
+  brokerage: "tastytrade",
+  username: "trader1",
+  accountNumber: "12345",
+  tradeSymbol: "/ES",
+  allocationValue: "$40,000",
+  preset: "smallAllocateCautious",
+  status: 'Inactive',
+  forceRebalance: false,
+  positions: [
+    {
+      symbol: "/ESM5 EW3H5 250321P5350",
+      qty: -6,
+      dte: 45,
+      avgTradePrice: 13.75,
+      status: "Filled"
+    },
+    {
+      symbol: "/ESM5 EW3H5 250321P5150",
+      qty: 4,
+      dte: 129,
+      avgTradePrice: 42.75,
+      status: "Filled"
+    }
+  ],
+  isExpanded: true
+};
+
 const presetOptions = [
   {
     displayName: "Small allocation ($40k-$75k) - Cautious",
@@ -108,7 +137,7 @@ const getPresetDisplayName = (value: string): string => {
 
 export default function DiagonalHedgePage() {
   const [open, setOpen] = useState(false);
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [strategies, setStrategies] = useState<Strategy[]>([defaultStrategy]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState({
     allocationValue: '',
@@ -399,7 +428,24 @@ export default function DiagonalHedgePage() {
                         <TableRow className="bg-[#0B0F17]/50 border-b border-[#1F2937]">
                           <TableCell colSpan={9} className="p-0">
                             <div className="p-4">
-                              <h3 className="text-sm font-medium text-gray-400 mb-2">Current Position</h3>
+                              <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-sm font-medium text-gray-400">Current Position</h3>
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-400">Bot State</span>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/50 text-blue-400">
+                                      In Position
+                                    </span>
+                                  </div>
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="bg-[#1F2937] hover:bg-[#374151] text-red-400 text-xs font-medium border border-[#374151]"
+                                  >
+                                    Close Position
+                                  </Button>
+                                </div>
+                              </div>
                               <div className="rounded-md border border-[#1F2937] bg-[#0B0F17]">
                                 <Table>
                                   <TableHeader>
@@ -418,7 +464,11 @@ export default function DiagonalHedgePage() {
                                         <TableCell className="text-white">{position.qty}</TableCell>
                                         <TableCell className="text-white">{position.dte}</TableCell>
                                         <TableCell className="text-white">${position.avgTradePrice.toFixed(2)}</TableCell>
-                                        <TableCell className="text-white">{position.status}</TableCell>
+                                        <TableCell>
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-400">
+                                            {position.status}
+                                          </span>
+                                        </TableCell>
                                       </TableRow>
                                     ))}
                                   </TableBody>
