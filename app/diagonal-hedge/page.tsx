@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, ArrowDownUp } from "lucide-react";
+import { Plus, Trash2, ArrowDownUp, Play, Pencil, Pause, Save } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -100,6 +100,11 @@ const getPresetDisplayName = (value: string): string => {
 export default function DiagonalHedgePage() {
   const [open, setOpen] = useState(false);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    allocationValue: '',
+    preset: ''
+  });
   const [formData, setFormData] = useState({
     brokerage: '',
     accountNumber: '',
@@ -118,6 +123,21 @@ export default function DiagonalHedgePage() {
       }));
     } else {
       setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleEditInputChange = (field: string, value: string) => {
+    if (field === 'allocationValue') {
+      const formattedValue = formatCurrency(value);
+      setEditFormData(prev => ({
+        ...prev,
+        [field]: formattedValue
+      }));
+    } else {
+      setEditFormData(prev => ({
         ...prev,
         [field]: value
       }));
@@ -145,6 +165,48 @@ export default function DiagonalHedgePage() {
       allocationValue: '$0'
     });
     setOpen(false);
+  };
+
+  const handleDeleteStrategy = (id: string) => {
+    setStrategies(prev => prev.filter(strategy => strategy.id !== id));
+  };
+
+  const toggleStrategyStatus = (id: string) => {
+    setStrategies(prev => prev.map(strategy => {
+      if (strategy.id === id) {
+        return {
+          ...strategy,
+          status: strategy.status === 'Active' ? 'Inactive' : 'Active'
+        };
+      }
+      return strategy;
+    }));
+  };
+
+  const handleEditClick = (strategy: Strategy) => {
+    setEditingId(strategy.id);
+    setEditFormData({
+      allocationValue: strategy.allocationValue,
+      preset: strategy.preset
+    });
+  };
+
+  const handleSaveEdit = (id: string) => {
+    setStrategies(prev => prev.map(strategy => {
+      if (strategy.id === id) {
+        return {
+          ...strategy,
+          allocationValue: editFormData.allocationValue,
+          preset: editFormData.preset
+        };
+      }
+      return strategy;
+    }));
+    setEditingId(null);
+    setEditFormData({
+      allocationValue: '',
+      preset: ''
+    });
   };
 
   return (
@@ -192,8 +254,38 @@ export default function DiagonalHedgePage() {
                       <TableCell className="font-medium text-white capitalize">{strategy.brokerage}</TableCell>
                       <TableCell className="text-white">{strategy.accountNumber}</TableCell>
                       <TableCell className="text-white">{strategy.tradeSymbol}</TableCell>
-                      <TableCell className="text-white">{strategy.allocationValue}</TableCell>
-                      <TableCell className="text-white">{getPresetDisplayName(strategy.preset)}</TableCell>
+                      <TableCell className="text-white">
+                        {editingId === strategy.id ? (
+                          <Input 
+                            className="bg-[#1F2937] border-[#374151] text-white focus:ring-offset-[#0F1724] w-32"
+                            value={editFormData.allocationValue}
+                            onChange={(e) => handleEditInputChange('allocationValue', e.target.value)}
+                          />
+                        ) : (
+                          strategy.allocationValue
+                        )}
+                      </TableCell>
+                      <TableCell className="text-white">
+                        {editingId === strategy.id ? (
+                          <Select
+                            value={editFormData.preset}
+                            onValueChange={(value) => handleEditInputChange('preset', value)}
+                          >
+                            <SelectTrigger className="bg-[#1F2937] border-[#374151] focus:ring-offset-[#0F1724] w-64">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#1F2937] border-[#374151]">
+                              {presetOptions.map((preset) => (
+                                <SelectItem key={preset.value} value={preset.value}>
+                                  {preset.displayName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          getPresetDisplayName(strategy.preset)
+                        )}
+                      </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           strategy.status === 'Active' 
@@ -203,17 +295,65 @@ export default function DiagonalHedgePage() {
                           {strategy.status}
                         </span>
                       </TableCell>
-                      <TableCell className="text-white">
-                        {strategy.forceRebalance ? 'Yes' : 'No'}
+                      <TableCell>
+                        {strategy.status === 'Active' && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="bg-[#1F2937] hover:bg-[#374151] text-cyan-400 text-xs font-medium border border-[#374151]"
+                          >
+                            Force Rebalance
+                          </Button>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="hover:bg-[#1F2937] hover:text-red-400"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`hover:bg-[#1F2937] ${
+                              strategy.status === 'Active' 
+                                ? 'text-green-400 hover:text-red-400' 
+                                : 'hover:text-green-400'
+                            }`}
+                            onClick={() => toggleStrategyStatus(strategy.id)}
+                          >
+                            {strategy.status === 'Active' ? (
+                              <Pause className="h-4 w-4" />
+                            ) : (
+                              <Play className="h-4 w-4" />
+                            )}
+                          </Button>
+                          {editingId === strategy.id ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="hover:bg-[#1F2937] text-green-400"
+                              onClick={() => handleSaveEdit(strategy.id)}
+                            >
+                              <Save className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="hover:bg-[#1F2937] hover:text-blue-400"
+                              onClick={() => handleEditClick(strategy)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {strategy.status === 'Inactive' && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="hover:bg-[#1F2937] hover:text-red-400"
+                              onClick={() => handleDeleteStrategy(strategy.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
