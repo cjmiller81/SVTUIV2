@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowDownUp, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ArrowDownUp } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -132,7 +132,7 @@ export default function DiagonalHedgePage() {
       tradeSymbol: formData.tradeSymbol,
       allocationValue: formData.allocationValue,
       preset: formData.preset,
-      status: 'Active',
+      status: 'Inactive',
       forceRebalance: false
     };
 
@@ -198,7 +198,7 @@ export default function DiagonalHedgePage() {
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           strategy.status === 'Active' 
                             ? 'bg-green-900/50 text-green-400' 
-                            : 'bg-red-900/50 text-red-400'
+                            : 'bg-gray-700/50 text-gray-400'
                         }`}>
                           {strategy.status}
                         </span>
