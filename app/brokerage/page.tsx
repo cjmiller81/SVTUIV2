@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -27,8 +27,53 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
+interface Connection {
+  id: string;
+  firm: string;
+  username: string;
+  accountNumber: string;
+  status: 'Connected' | 'Disconnected';
+}
+
 export default function BrokeragePage() {
   const [open, setOpen] = useState(false);
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [formData, setFormData] = useState({
+    firm: '',
+    username: '',
+    accountNumber: '',
+    password: ''
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAddConnection = () => {
+    const newConnection: Connection = {
+      id: crypto.randomUUID(),
+      firm: formData.firm,
+      username: formData.username,
+      accountNumber: formData.accountNumber,
+      status: 'Connected'
+    };
+
+    setConnections(prev => [...prev, newConnection]);
+    setFormData({
+      firm: '',
+      username: '',
+      accountNumber: '',
+      password: ''
+    });
+    setOpen(false);
+  };
+
+  const handleDeleteConnection = (id: string) => {
+    setConnections(prev => prev.filter(conn => conn.id !== id));
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -64,7 +109,32 @@ export default function BrokeragePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Table rows will be dynamically added here */}
+                  {connections.map((connection) => (
+                    <TableRow key={connection.id} className="border-b border-[#1F2937] hover:bg-[#1F2937]/50">
+                      <TableCell className="font-medium text-white">{connection.firm}</TableCell>
+                      <TableCell className="text-white">{connection.username}</TableCell>
+                      <TableCell className="text-white">{connection.accountNumber}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          connection.status === 'Connected' 
+                            ? 'bg-green-900/50 text-green-400' 
+                            : 'bg-red-900/50 text-red-400'
+                        }`}>
+                          {connection.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-[#1F2937] hover:text-red-400"
+                          onClick={() => handleDeleteConnection(connection.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -79,7 +149,10 @@ export default function BrokeragePage() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <label className="text-sm text-gray-400">Firm</label>
-                <Select>
+                <Select
+                  value={formData.firm}
+                  onValueChange={(value) => handleInputChange('firm', value)}
+                >
                   <SelectTrigger className="bg-[#1F2937] border-[#374151] focus:ring-offset-[#0F1724]">
                     <SelectValue placeholder="Select a brokerage firm" />
                   </SelectTrigger>
@@ -93,6 +166,8 @@ export default function BrokeragePage() {
                 <Input 
                   className="bg-[#1F2937] border-[#374151] text-white focus:ring-offset-[#0F1724]" 
                   placeholder="Enter your username"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -100,6 +175,8 @@ export default function BrokeragePage() {
                 <Input 
                   className="bg-[#1F2937] border-[#374151] text-white focus:ring-offset-[#0F1724]" 
                   placeholder="Enter your account number"
+                  value={formData.accountNumber}
+                  onChange={(e) => handleInputChange('accountNumber', e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -108,10 +185,13 @@ export default function BrokeragePage() {
                   type="password"
                   className="bg-[#1F2937] border-[#374151] text-white focus:ring-offset-[#0F1724]" 
                   placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
                 />
               </div>
               <Button 
                 className="w-full mt-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
+                onClick={handleAddConnection}
               >
                 Add Connection
               </Button>
