@@ -109,6 +109,210 @@ export default function ZeroDTEMechanicalPage() {
     handleStrikeSelectionChange(index, field, newValue);
   };
 
+  const renderStrikeSelectionRow = (selection: StrikeSelection, index: number) => {
+    return (
+      <div key={index} className="mb-4 p-4 bg-[#0B0F17] rounded-lg border border-[#1F2937]">
+        <div className="flex flex-col space-y-4 sm:hidden">
+          <div className="flex justify-between items-center">
+            <div className={`px-3 py-1 rounded text-sm ${
+              selection.action === 'Sell' 
+                ? 'bg-red-100 text-red-900' 
+                : 'bg-green-100 text-green-900'
+            }`}>
+              {selection.type}
+            </div>
+            <div className={`px-3 py-1 rounded text-sm text-white ${
+              selection.action === 'Sell' 
+                ? 'bg-red-600' 
+                : 'bg-green-600'
+            }`}>
+              {selection.action}
+            </div>
+          </div>
+          
+          {selection.action === 'Sell' && (
+            <>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Target Credit</label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    value={formatCurrency(selection.targetCredit)}
+                    onChange={(e) => handleNumberInput(index, 'targetCredit', e.target.value, 0.05)}
+                    className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                  />
+                  <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                    <button
+                      className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                      onClick={() => adjustValue(index, 'targetCredit', true, 0.05)}
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                      onClick={() => adjustValue(index, 'targetCredit', false, 0.05)}
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Stop Loss%</label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    value={formatPercentage(selection.stopLoss)}
+                    onChange={(e) => handleNumberInput(index, 'stopLoss', e.target.value, 0.01)}
+                    className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                  />
+                  <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                    <button
+                      className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                      onClick={() => adjustValue(index, 'stopLoss', true, 0.01)}
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                      onClick={() => adjustValue(index, 'stopLoss', false, 0.01)}
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          
+          {selection.action === 'Buy' && (
+            <div className="space-y-1">
+              <label className="text-sm text-gray-400">Strike Distance</label>
+              <div className="relative">
+                <Input
+                  type="text"
+                  value={selection.strikeDistance?.toString() || ''}
+                  onChange={(e) => handleNumberInput(index, 'strikeDistance', e.target.value, 5)}
+                  className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                />
+                <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                    onClick={() => adjustValue(index, 'strikeDistance', true, 5)}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                    onClick={() => adjustValue(index, 'strikeDistance', false, 5)}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop view */}
+        <div className="hidden sm:grid sm:grid-cols-5 sm:gap-0.5">
+          <div className={`flex items-center justify-center px-2 py-1 rounded text-sm ${
+            selection.action === 'Sell' 
+              ? 'bg-red-100 text-red-900' 
+              : 'bg-green-100 text-green-900'
+          }`}>
+            {selection.type}
+          </div>
+          <div className={`flex items-center justify-center px-2 py-1 rounded text-sm text-white ${
+            selection.action === 'Sell' 
+              ? 'bg-red-600' 
+              : 'bg-green-600'
+          }`}>
+            {selection.action}
+          </div>
+          <div className="relative">
+            {selection.action === 'Sell' && (
+              <div className="flex">
+                <Input
+                  type="text"
+                  value={formatCurrency(selection.targetCredit)}
+                  onChange={(e) => handleNumberInput(index, 'targetCredit', e.target.value, 0.05)}
+                  className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                />
+                <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                    onClick={() => adjustValue(index, 'targetCredit', true, 0.05)}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                    onClick={() => adjustValue(index, 'targetCredit', false, 0.05)}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="relative">
+            {selection.action === 'Buy' && (
+              <div className="flex">
+                <Input
+                  type="text"
+                  value={selection.strikeDistance?.toString() || ''}
+                  onChange={(e) => handleNumberInput(index, 'strikeDistance', e.target.value, 5)}
+                  className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                />
+                <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                    onClick={() => adjustValue(index, 'strikeDistance', true, 5)}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                    onClick={() => adjustValue(index, 'strikeDistance', false, 5)}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="relative">
+            {selection.action === 'Sell' && (
+              <div className="flex">
+                <Input
+                  type="text"
+                  value={formatPercentage(selection.stopLoss)}
+                  onChange={(e) => handleNumberInput(index, 'stopLoss', e.target.value, 0.01)}
+                  className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                />
+                <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                    onClick={() => adjustValue(index, 'stopLoss', true, 0.01)}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                    onClick={() => adjustValue(index, 'stopLoss', false, 0.01)}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="border-b border-[#1F2937] bg-[#0B0F17] p-8">
@@ -245,110 +449,15 @@ export default function ZeroDTEMechanicalPage() {
               <div className="grid gap-2">
                 <label className="text-sm text-gray-400">Strike Selection</label>
                 <div className="rounded-md border border-[#1F2937] overflow-hidden">
-                  <div className="grid grid-cols-5 gap-0.5 bg-[#1F2937] p-2 text-xs font-medium text-gray-400">
+                  <div className="hidden sm:grid sm:grid-cols-5 gap-0.5 bg-[#1F2937] p-2 text-xs font-medium text-gray-400">
                     <div className="text-center">Type</div>
                     <div className="text-center">Action</div>
                     <div className="text-center">Target Credit</div>
                     <div className="text-center">Strike Distance</div>
                     <div className="text-center">Stop Loss%</div>
                   </div>
-                  <div className="divide-y divide-[#1F2937]">
-                    {strikeSelections.map((selection, index) => (
-                      <div key={index} className="grid grid-cols-5 gap-0.5 p-2">
-                        <div className={`flex items-center justify-center px-2 py-1 rounded text-sm ${
-                          selection.action === 'Sell' 
-                            ? 'bg-red-100 text-red-900' 
-                            : 'bg-green-100 text-green-900'
-                        }`}>
-                          {selection.type}
-                        </div>
-                        <div className={`flex items-center justify-center px-2 py-1 rounded text-sm text-white ${
-                          selection.action === 'Sell' 
-                            ? 'bg-red-600' 
-                            : 'bg-green-600'
-                        }`}>
-                          {selection.action}
-                        </div>
-                        <div className="relative">
-                          {selection.action === 'Sell' && (
-                            <div className="flex">
-                              <Input
-                                type="text"
-                                value={formatCurrency(selection.targetCredit)}
-                                onChange={(e) => handleNumberInput(index, 'targetCredit', e.target.value, 0.05)}
-                                className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
-                              />
-                              <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
-                                <button
-                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
-                                  onClick={() => adjustValue(index, 'targetCredit', true, 0.05)}
-                                >
-                                  <ChevronUp className="h-3 w-3" />
-                                </button>
-                                <button
-                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
-                                  onClick={() => adjustValue(index, 'targetCredit', false, 0.05)}
-                                >
-                                  <ChevronDown className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="relative">
-                          {selection.action === 'Buy' && (
-                            <div className="flex">
-                              <Input
-                                type="text"
-                                value={selection.strikeDistance?.toString() || ''}
-                                onChange={(e) => handleNumberInput(index, 'strikeDistance', e.target.value, 5)}
-                                className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
-                              />
-                              <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
-                                <button
-                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
-                                  onClick={() => adjustValue(index, 'strikeDistance', true, 5)}
-                                >
-                                  <ChevronUp className="h-3 w-3" />
-                                </button>
-                                <button
-                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
-                                  onClick={() => adjustValue(index, 'strikeDistance', false, 5)}
-                                >
-                                  <ChevronDown className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="relative">
-                          {selection.action === 'Sell' && (
-                            <div className="flex">
-                              <Input
-                                type="text"
-                                value={formatPercentage(selection.stopLoss)}
-                                onChange={(e) => handleNumberInput(index, 'stopLoss', e.target.value, 0.01)}
-                                className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
-                              />
-                              <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
-                                <button
-                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
-                                  onClick={() => adjustValue(index, 'stopLoss', true, 0.01)}
-                                >
-                                  <ChevronUp className="h-3 w-3" />
-                                </button>
-                                <button
-                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
-                                  onClick={() => adjustValue(index, 'stopLoss', false, 0.01)}
-                                >
-                                  <ChevronDown className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="p-2 space-y-2">
+                    {strikeSelections.map((selection, index) => renderStrikeSelectionRow(selection, index))}
                   </div>
                 </div>
               </div>
