@@ -7,11 +7,12 @@ import {
   Briefcase, 
   TrendingUp, 
   Calendar, 
-  ArrowDownUp
+  ArrowDownUp,
+  Timer
 } from 'lucide-react';
 
 // Define the type for Lucide icons
-type IconType = typeof Briefcase | typeof TrendingUp | typeof Calendar | typeof ArrowDownUp;
+type IconType = typeof Briefcase | typeof TrendingUp | typeof Calendar | typeof ArrowDownUp | typeof Timer;
 
 type NavRoute = {
   label: string;
@@ -55,6 +56,12 @@ const routes: Route[] = [
     icon: ArrowDownUp,
     href: '/diagonal-hedge',
     color: 'text-orange-500'
+  },
+  {
+    label: '0DTE Mechanical',
+    icon: Timer,
+    href: '/0dte-mechanical',
+    color: 'text-purple-500'
   }
 ];
 
