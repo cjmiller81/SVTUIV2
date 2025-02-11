@@ -126,6 +126,32 @@ export default function ZeroDTEMechanicalPage() {
                 </Select>
               </div>
               <div className="grid gap-2">
+                <label className="text-sm text-gray-400">Trade Entry Time</label>
+                <Select
+                  value={formData.tradeEntryTime}
+                  onValueChange={(value) => handleInputChange('tradeEntryTime', value)}
+                >
+                  <SelectTrigger className="bg-[#1F2937] border-[#374151] focus:ring-offset-[#0F1724]">
+                    <SelectValue placeholder="Select entry time" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1F2937] border-[#374151]">
+                    <SelectItem value="market_open_2">Market open +2min</SelectItem>
+                    <SelectItem value="market_open_14">Market open +14min</SelectItem>
+                    <SelectItem value="market_open_29">Market open +29min (default)</SelectItem>
+                    <SelectItem value="market_open_44">Market open +44min</SelectItem>
+                    <SelectItem value="market_open_59">Market open +59min</SelectItem>
+                    <SelectItem value="market_open_74">Market open +74min</SelectItem>
+                    <SelectItem value="market_open_89">Market open +89min</SelectItem>
+                    <SelectItem value="market_open_104">Market open +104min</SelectItem>
+                    <SelectItem value="market_open_119">Market open +119min</SelectItem>
+                    <SelectItem value="market_open_134">Market open +134min</SelectItem>
+                    <SelectItem value="market_open_149">Market open +149min</SelectItem>
+                    <SelectItem value="market_open_164">Market open +164min</SelectItem>
+                    <SelectItem value="market_open_179">Market open +179min</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
                 <div className="flex items-start justify-between">
                   <label className="text-sm text-gray-400">Spread Type</label>
                   {formData.spreadType === 'strangle' && (
@@ -152,32 +178,6 @@ export default function ZeroDTEMechanicalPage() {
                     WARNING: SPX Strangles require significant buying power. Ensure you have enough capital or manage your own hedge.
                   </p>
                 )}
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm text-gray-400">Trade Entry Time</label>
-                <Select
-                  value={formData.tradeEntryTime}
-                  onValueChange={(value) => handleInputChange('tradeEntryTime', value)}
-                >
-                  <SelectTrigger className="bg-[#1F2937] border-[#374151] focus:ring-offset-[#0F1724]">
-                    <SelectValue placeholder="Select entry time" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1F2937] border-[#374151]">
-                    <SelectItem value="market_open_2">Market open +2min</SelectItem>
-                    <SelectItem value="market_open_14">Market open +14min</SelectItem>
-                    <SelectItem value="market_open_29">Market open +29min (default)</SelectItem>
-                    <SelectItem value="market_open_44">Market open +44min</SelectItem>
-                    <SelectItem value="market_open_59">Market open +59min</SelectItem>
-                    <SelectItem value="market_open_74">Market open +74min</SelectItem>
-                    <SelectItem value="market_open_89">Market open +89min</SelectItem>
-                    <SelectItem value="market_open_104">Market open +104min</SelectItem>
-                    <SelectItem value="market_open_119">Market open +119min</SelectItem>
-                    <SelectItem value="market_open_134">Market open +134min</SelectItem>
-                    <SelectItem value="market_open_149">Market open +149min</SelectItem>
-                    <SelectItem value="market_open_164">Market open +164min</SelectItem>
-                    <SelectItem value="market_open_179">Market open +179min</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </DialogContent>
