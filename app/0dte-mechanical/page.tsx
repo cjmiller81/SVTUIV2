@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Timer, AlertCircle } from "lucide-react";
+import { Plus, Timer, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+
+interface StrikeSelection {
+  type: 'Put' | 'Call';
+  action: 'Buy' | 'Sell';
+  targetCredit: number | null;
+  strikeDistance: number | null;
+  stopLoss: number | null;
+}
 
 interface Strategy {
   id: string;
@@ -26,7 +35,15 @@ interface Strategy {
   tradeSymbol: string;
   spreadType: string;
   tradeEntryTime: string;
+  strikeSelections: StrikeSelection[];
 }
+
+const defaultStrikeSelections: StrikeSelection[] = [
+  { type: 'Put', action: 'Sell', targetCredit: 1.75, strikeDistance: null, stopLoss: 1.75 },
+  { type: 'Put', action: 'Buy', targetCredit: null, strikeDistance: 150, stopLoss: null },
+  { type: 'Call', action: 'Sell', targetCredit: 1.50, strikeDistance: null, stopLoss: 1.50 },
+  { type: 'Call', action: 'Buy', targetCredit: null, strikeDistance: 150, stopLoss: null }
+];
 
 export default function ZeroDTEMechanicalPage() {
   const [open, setOpen] = useState(false);
@@ -38,12 +55,58 @@ export default function ZeroDTEMechanicalPage() {
     spreadType: '',
     tradeEntryTime: ''
   });
+  const [strikeSelections, setStrikeSelections] = useState<StrikeSelection[]>(defaultStrikeSelections);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleStrikeSelectionChange = (index: number, field: keyof StrikeSelection, value: any) => {
+    setStrikeSelections(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value
+      };
+      return updated;
+    });
+  };
+
+  const formatCurrency = (value: number | null) => {
+    if (value === null) return '';
+    return `$${value.toFixed(2)}`;
+  };
+
+  const formatPercentage = (value: number | null) => {
+    if (value === null) return '';
+    return `${value.toFixed(2)}%`;
+  };
+
+  const handleNumberInput = (
+    index: number,
+    field: 'targetCredit' | 'strikeDistance' | 'stopLoss',
+    value: string,
+    step: number
+  ) => {
+    const numericValue = parseFloat(value.replace(/[^\d.-]/g, ''));
+    if (!isNaN(numericValue)) {
+      handleStrikeSelectionChange(index, field, numericValue);
+    }
+  };
+
+  const adjustValue = (
+    index: number,
+    field: 'targetCredit' | 'strikeDistance' | 'stopLoss',
+    increment: boolean,
+    step: number
+  ) => {
+    const selection = strikeSelections[index];
+    const currentValue = selection[field] || 0;
+    const newValue = increment ? currentValue + step : currentValue - step;
+    handleStrikeSelectionChange(index, field, newValue);
   };
 
   return (
@@ -78,7 +141,7 @@ export default function ZeroDTEMechanicalPage() {
         </Card>
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="bg-[#0F1724] border-[#1F2937] text-white sm:max-w-[425px]">
+          <DialogContent className="bg-[#0F1724] border-[#1F2937] text-white sm:max-w-[525px]">
             <DialogHeader>
               <DialogTitle className="text-lg font-semibold">Add New Strategy</DialogTitle>
             </DialogHeader>
@@ -179,6 +242,125 @@ export default function ZeroDTEMechanicalPage() {
                   </p>
                 )}
               </div>
+              <div className="grid gap-2">
+                <label className="text-sm text-gray-400">Strike Selection</label>
+                <div className="rounded-md border border-[#1F2937] overflow-hidden">
+                  <div className="grid grid-cols-5 gap-0.5 bg-[#1F2937] p-2 text-xs font-medium text-gray-400">
+                    <div className="text-center">Type</div>
+                    <div className="text-center">Action</div>
+                    <div className="text-center">Target Credit</div>
+                    <div className="text-center">Strike Distance</div>
+                    <div className="text-center">Stop Loss%</div>
+                  </div>
+                  <div className="divide-y divide-[#1F2937]">
+                    {strikeSelections.map((selection, index) => (
+                      <div key={index} className="grid grid-cols-5 gap-0.5 p-2">
+                        <div className={`flex items-center justify-center px-2 py-1 rounded text-sm ${
+                          selection.action === 'Sell' 
+                            ? 'bg-red-100 text-red-900' 
+                            : 'bg-green-100 text-green-900'
+                        }`}>
+                          {selection.type}
+                        </div>
+                        <div className={`flex items-center justify-center px-2 py-1 rounded text-sm text-white ${
+                          selection.action === 'Sell' 
+                            ? 'bg-red-600' 
+                            : 'bg-green-600'
+                        }`}>
+                          {selection.action}
+                        </div>
+                        <div className="relative">
+                          {selection.action === 'Sell' && (
+                            <div className="flex">
+                              <Input
+                                type="text"
+                                value={formatCurrency(selection.targetCredit)}
+                                onChange={(e) => handleNumberInput(index, 'targetCredit', e.target.value, 0.05)}
+                                className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                              />
+                              <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                                <button
+                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                                  onClick={() => adjustValue(index, 'targetCredit', true, 0.05)}
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                                  onClick={() => adjustValue(index, 'targetCredit', false, 0.05)}
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="relative">
+                          {selection.action === 'Buy' && (
+                            <div className="flex">
+                              <Input
+                                type="text"
+                                value={selection.strikeDistance?.toString() || ''}
+                                onChange={(e) => handleNumberInput(index, 'strikeDistance', e.target.value, 5)}
+                                className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                              />
+                              <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                                <button
+                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                                  onClick={() => adjustValue(index, 'strikeDistance', true, 5)}
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                                  onClick={() => adjustValue(index, 'strikeDistance', false, 5)}
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="relative">
+                          {selection.action === 'Sell' && (
+                            <div className="flex">
+                              <Input
+                                type="text"
+                                value={formatPercentage(selection.stopLoss)}
+                                onChange={(e) => handleNumberInput(index, 'stopLoss', e.target.value, 0.01)}
+                                className="bg-[#1F2937] border-[#374151] text-white w-full pr-8 text-center"
+                              />
+                              <div className="absolute right-0 inset-y-0 flex flex-col border-l border-[#374151]">
+                                <button
+                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400"
+                                  onClick={() => adjustValue(index, 'stopLoss', true, 0.01)}
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  className="flex-1 px-2 hover:bg-[#374151] text-gray-400 border-t border-[#374151]"
+                                  onClick={() => adjustValue(index, 'stopLoss', false, 0.01)}
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Button 
+                className="w-full mt-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
+                onClick={() => {
+                  // Handle strategy creation
+                  setOpen(false);
+                }}
+              >
+                Add Strategy
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
