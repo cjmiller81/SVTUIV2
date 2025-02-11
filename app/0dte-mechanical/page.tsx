@@ -52,12 +52,22 @@ export default function ZeroDTEMechanicalPage() {
     brokerage: '',
     accountNumber: '',
     tradeSymbol: '',
-    spreadType: '',
+    spreadType: 'ironCondor', // Set default to ironCondor
     tradeEntryTime: ''
   });
   const [strikeSelections, setStrikeSelections] = useState<StrikeSelection[]>(defaultStrikeSelections);
 
   const handleInputChange = (field: string, value: string) => {
+    if (field === 'spreadType') {
+      // When spread type changes, update strike selections
+      const newSelections = defaultStrikeSelections.filter(selection => {
+        if (value === 'strangle') {
+          return selection.action === 'Sell';
+        }
+        return true;
+      });
+      setStrikeSelections(newSelections);
+    }
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -185,7 +195,7 @@ export default function ZeroDTEMechanicalPage() {
             </>
           )}
           
-          {selection.action === 'Buy' && (
+          {selection.action === 'Buy' && formData.spreadType === 'ironCondor' && (
             <div className="space-y-1">
               <label className="text-sm text-gray-400">Strike Distance</label>
               <div className="relative">
@@ -257,7 +267,7 @@ export default function ZeroDTEMechanicalPage() {
             )}
           </div>
           <div className="relative">
-            {selection.action === 'Buy' && (
+            {selection.action === 'Buy' && formData.spreadType === 'ironCondor' && (
               <div className="flex">
                 <Input
                   type="text"
